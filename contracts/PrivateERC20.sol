@@ -65,18 +65,30 @@ contract PrivateERC20 {
     }
     
     /**
-     * @dev Update encrypted balance for an account
+     * @dev Update encrypted balances for sender and receiver
      * This function should only be called by the iExec TEE enclave
-     * after off-chain decryption and computation
-     * @param account Account to update
-     * @param newEncryptedBalance New encrypted balance
+     * after off-chain decryption and computation of transfer
+     * @param sender Sender address
+     * @param receiver Receiver address
+     * @param senderNewBalance New encrypted balance for sender
+     * @param receiverNewBalance New encrypted balance for receiver
      */
-    function updateBalance(address account, bytes calldata newEncryptedBalance) external {
-        require(account != address(0), "Invalid account");
-        require(newEncryptedBalance.length > 0, "Invalid encrypted balance");
+    function updateBalance(
+        address sender,
+        address receiver,
+        bytes calldata senderNewBalance,
+        bytes calldata receiverNewBalance
+    ) external {
+        require(sender != address(0), "Invalid sender");
+        require(receiver != address(0), "Invalid receiver");
+        require(senderNewBalance.length > 0, "Invalid sender balance");
+        require(receiverNewBalance.length > 0, "Invalid receiver balance");
         
-        encryptedBalances[account] = newEncryptedBalance;
-        emit BalanceUpdate(account, newEncryptedBalance);
+        encryptedBalances[sender] = senderNewBalance;
+        encryptedBalances[receiver] = receiverNewBalance;
+        
+        emit BalanceUpdate(sender, senderNewBalance);
+        emit BalanceUpdate(receiver, receiverNewBalance);
     }
     
     /**

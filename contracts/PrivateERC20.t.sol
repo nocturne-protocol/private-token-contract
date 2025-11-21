@@ -79,27 +79,49 @@ contract PrivateERC20Test is Test {
     }
 
     function test_UpdateBalance() public {
-        bytes memory newEncryptedBalance = hex"fedcba0987654321";
+        bytes memory senderNewBalance = hex"1111111111111111";
+        bytes memory receiverNewBalance = hex"2222222222222222";
         
         vm.expectEmit(true, false, false, true);
-        emit PrivateERC20.BalanceUpdate(user1, newEncryptedBalance);
+        emit PrivateERC20.BalanceUpdate(user1, senderNewBalance);
         
-        privateToken.updateBalance(user1, newEncryptedBalance);
+        vm.expectEmit(true, false, false, true);
+        emit PrivateERC20.BalanceUpdate(user2, receiverNewBalance);
         
-        bytes memory balance = privateToken.balanceOf(user1);
-        assertEq(balance, newEncryptedBalance, "Balance should be updated");
+        privateToken.updateBalance(user1, user2, senderNewBalance, receiverNewBalance);
+        
+        assertEq(privateToken.balanceOf(user1), senderNewBalance, "Sender balance should be updated");
+        assertEq(privateToken.balanceOf(user2), receiverNewBalance, "Receiver balance should be updated");
     }
 
-    function test_UpdateBalanceInvalidAccount() public {
-        bytes memory newEncryptedBalance = hex"fedcba0987654321";
+    function test_UpdateBalanceInvalidSender() public {
+        bytes memory senderBalance = hex"1111111111111111";
+        bytes memory receiverBalance = hex"2222222222222222";
         
-        vm.expectRevert("Invalid account");
-        privateToken.updateBalance(address(0), newEncryptedBalance);
+        vm.expectRevert("Invalid sender");
+        privateToken.updateBalance(address(0), user2, senderBalance, receiverBalance);
     }
 
-    function test_UpdateBalanceEmptyAmount() public {
-        vm.expectRevert("Invalid encrypted balance");
-        privateToken.updateBalance(user1, "");
+    function test_UpdateBalanceInvalidReceiver() public {
+        bytes memory senderBalance = hex"1111111111111111";
+        bytes memory receiverBalance = hex"2222222222222222";
+        
+        vm.expectRevert("Invalid receiver");
+        privateToken.updateBalance(user1, address(0), senderBalance, receiverBalance);
+    }
+
+    function test_UpdateBalanceEmptySenderAmount() public {
+        bytes memory receiverBalance = hex"2222222222222222";
+        
+        vm.expectRevert("Invalid sender balance");
+        privateToken.updateBalance(user1, user2, "", receiverBalance);
+    }
+
+    function test_UpdateBalanceEmptyReceiverAmount() public {
+        bytes memory senderBalance = hex"1111111111111111";
+        
+        vm.expectRevert("Invalid receiver balance");
+        privateToken.updateBalance(user1, user2, senderBalance, "");
     }
 
     function test_BalanceOf() public {
