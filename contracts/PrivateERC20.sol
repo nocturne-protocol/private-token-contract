@@ -10,59 +10,28 @@ contract PrivateERC20 {
     string public name;
     string public symbol;
     uint8 public decimals;
+    uint256 public totalSupply;
     
     // Encrypted balances mapping: address => encrypted balance
     mapping(address => bytes) public encryptedBalances;
     
-    // Total supply (can be public or encrypted based on requirements)
-    uint256 public totalSupply;
-    
-    // Owner/admin of the contract
-    address public owner;
-    
-    // TEE oracle address for balance updates
-    address public teeOracle;
-    
-    // Mapping to track pending operations
-    mapping(bytes32 => bool) public pendingOperations;
-    
     // Events
     event Mint(address indexed to, bytes encryptedAmount);
-    event Transfer(address indexed from, address indexed to, bytes encryptedAmount);
     event BalanceUpdate(address indexed account, bytes newEncryptedBalance);
     event TransferRequested(
-        bytes32 indexed operationId,
         address indexed from,
         address indexed to,
         bytes encryptedAmount
     );
-    event BalancesUpdated(
-        bytes32 indexed operationId,
-        address[] accounts,
-        bytes[] newBalances
-    );
-    
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Not authorized");
-        _;
-    }
-    
-    modifier onlyTEE() {
-        require(msg.sender == teeOracle, "Only TEE can call this function");
-        _;
-    }
     
     constructor(
         string memory _name,
         string memory _symbol,
-        uint8 _decimals,
-        address _teeOracle
+        uint8 _decimals
     ) {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
-        owner = msg.sender;
-        teeOracle = _teeOracle;
         totalSupply = 0;
     }
     
@@ -71,7 +40,7 @@ contract PrivateERC20 {
      * @param to Address to mint tokens to
      * @param encryptedAmount Encrypted amount to mint
      */
-    function mint(address to, bytes calldata encryptedAmount) external onlyOwner {
+    function mint(address to, bytes calldata encryptedAmount) external {
         require(to != address(0), "Cannot mint to zero address");
         require(encryptedAmount.length > 0, "Invalid encrypted amount");
         
@@ -91,18 +60,8 @@ contract PrivateERC20 {
         require(to != msg.sender, "Cannot transfer to self");
         require(encryptedAmount.length > 0, "Invalid encrypted amount");
         
-        bytes32 operationId = keccak256(abi.encodePacked(
-            msg.sender,
-            to,
-            encryptedAmount,
-            block.timestamp,
-            block.number
-        ));
-        
-        pendingOperations[operationId] = true;
-        
-        emit TransferRequested(operationId, msg.sender, to, encryptedAmount);
-        emit Transfer(msg.sender, to, encryptedAmount);
+        //TODO: Call iExec MatchOrder to process the transfer in TEE off-chain
+        emit TransferRequested(msg.sender, to, encryptedAmount);
     }
     
     /**
@@ -112,41 +71,12 @@ contract PrivateERC20 {
      * @param account Account to update
      * @param newEncryptedBalance New encrypted balance
      */
-    function updateBalance(address account, bytes calldata newEncryptedBalance) external onlyTEE {
+    function updateBalance(address account, bytes calldata newEncryptedBalance) external {
         require(account != address(0), "Invalid account");
         require(newEncryptedBalance.length > 0, "Invalid encrypted balance");
         
         encryptedBalances[account] = newEncryptedBalance;
-        
         emit BalanceUpdate(account, newEncryptedBalance);
-    }
-    
-    /**
-     * @dev Batch update balances (useful for transfer operations)
-     * Called by iExec TEE after processing transfer requests
-     * @param operationId The operation ID that was processed
-     * @param accounts Array of accounts to update
-     * @param newEncryptedBalances Array of new encrypted balances
-     */
-    function batchUpdateBalances(
-        bytes32 operationId,
-        address[] calldata accounts,
-        bytes[] calldata newEncryptedBalances
-    ) external onlyTEE {
-        require(pendingOperations[operationId], "Invalid or already processed operation");
-        require(accounts.length == newEncryptedBalances.length, "Array length mismatch");
-        
-        pendingOperations[operationId] = false;
-        
-        for (uint256 i = 0; i < accounts.length; i++) {
-            require(accounts[i] != address(0), "Invalid account");
-            require(newEncryptedBalances[i].length > 0, "Invalid encrypted balance");
-            
-            encryptedBalances[accounts[i]] = newEncryptedBalances[i];
-            emit BalanceUpdate(accounts[i], newEncryptedBalances[i]);
-        }
-        
-        emit BalancesUpdated(operationId, accounts, newEncryptedBalances);
     }
     
     /**
@@ -156,23 +86,5 @@ contract PrivateERC20 {
      */
     function balanceOf(address account) external view returns (bytes memory) {
         return encryptedBalances[account];
-    }
-    
-    /**
-     * @dev Update TEE oracle address
-     * @param newTeeOracle New TEE oracle address
-     */
-    function updateTeeOracle(address newTeeOracle) external onlyOwner {
-        require(newTeeOracle != address(0), "Invalid TEE oracle address");
-        teeOracle = newTeeOracle;
-    }
-    
-    /**
-     * @dev Transfer ownership
-     * @param newOwner New owner address
-     */
-    function transferOwnership(address newOwner) external onlyOwner {
-        require(newOwner != address(0), "Invalid new owner");
-        owner = newOwner;
     }
 }
