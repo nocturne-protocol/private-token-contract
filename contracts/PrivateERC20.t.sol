@@ -8,19 +8,16 @@ contract PrivateERC20Test is Test {
     PrivateERC20 privateToken;
     address user1;
     address user2;
-    uint256 arbitrumSepolia;
+    uint256 arbitrumSepoliaFork;
 
     function setUp() public {
+        // Create fork of Arbitrum Sepolia
+        arbitrumSepoliaFork = vm.createFork(vm.envString("ARBITRUM_SEPOLIA_RPC_URL"));
+        vm.selectFork(arbitrumSepoliaFork);
+        
         // Setup test addresses
         user1 = address(0x1);
         user2 = address(0x2);
-        
-        // Create fork of Arbitrum Sepolia if ARBITRUM_SEPOLIA_RPC_URL is set
-        string memory rpcUrl = vm.envString("ARBITRUM_SEPOLIA_RPC_URL");
-        if (bytes(rpcUrl).length > 0) {
-            arbitrumSepolia = vm.createFork(rpcUrl);
-            vm.selectFork(arbitrumSepolia);
-        }
         
         // Deploy PrivateERC20 contract
         privateToken = new PrivateERC20("PrivateToken", "PRIV", 18);
