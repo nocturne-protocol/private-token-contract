@@ -1,23 +1,87 @@
-# Sample Hardhat 3 Beta Project (`node:test` and `viem`)
+# Private ERC20 Token with iExec TEE Integration
 
-This project showcases a Hardhat 3 Beta project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+Ce projet implémente un token ERC20 avec des fonctionnalités de confidentialité utilisant des montants chiffrés et une intégration avec iExec TEE pour le traitement off-chain.
 
-To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+## 🏗️ Architecture
 
-## Project Overview
+Le contrat `PrivateERC20` combine deux fonctionnalités principales :
+1. **Token ERC20 privé** avec balances chiffrées
+2. **Intégration TEE** pour le traitement off-chain sécurisé
 
-This example project includes:
+### Fonctionnalités clés
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+#### 1. Mint de tokens
+```solidity
+function mint(address to, bytes calldata encryptedAmount) external onlyOwner
+```
+- Seul le propriétaire peut créer de nouveaux tokens
+- Le montant est fourni sous forme chiffrée
 
-## Usage
+#### 2. Transfert avec TEE
+```solidity
+function transfer(address to, bytes calldata encryptedAmount) external
+```
+- Crée une demande de transfert avec un ID d'opération unique
+- Émet des événements `TransferRequested` et `Transfer`
+- Le traitement réel se fait off-chain dans l'enclave TEE
 
-### Running Tests
+#### 3. Mise à jour des balances par TEE
+```solidity
+function batchUpdateBalances(bytes32 operationId, address[] accounts, bytes[] newBalances) external onlyTEE
+```
+- Met à jour les balances après vérification dans l'enclave TEE
+- Seul l'oracle TEE peut effectuer ces mises à jour
 
-To run all the tests in the project, execute the following command:
+## 🔄 Flux de travail
+
+1. **Demande de transfert** → L'utilisateur appelle `transfer()`
+2. **Événement émis** → `TransferRequested` avec un ID d'opération unique
+3. **Traitement TEE** → L'enclave iExec déchiffre, vérifie et calcule
+4. **Mise à jour** → TEE appelle `batchUpdateBalances()` avec les nouvelles balances chiffrées
+
+## 🚀 Utilisation
+
+### Compilation
+```bash
+npx hardhat compile
+```
+
+### Tests
+```bash
+forge test
+```
+
+### Déploiement
+```bash
+npx hardhat run scripts/deploy.ts --network <network>
+```
+
+## 🔐 Sécurité
+
+- **Confidentialité** : Tous les montants restent chiffrés on-chain
+- **Intégrité** : Vérification dans un environnement d'exécution de confiance (TEE)
+- **Auditabilité** : Tous les événements sont traçables
+
+## 📁 Structure des fichiers
+
+```
+contracts/
+├── PrivateERC20.sol         # Contrat principal
+└── PrivateERC20.t.sol       # Tests Forge
+
+scripts/
+└── deploy.ts                # Script de déploiement
+```
+
+## 🛠️ Pourquoi un seul contrat ?
+
+L'architecture a été simplifiée pour éviter la complexité inutile :
+- **Avant** : Deux contrats séparés (`PrivateERC20` + `TEEBalanceManager`)
+- **Maintenant** : Un seul contrat avec toute la logique intégrée
+- **Avantages** : 
+  - Moins de gas pour les interactions
+  - Code plus simple à maintenir
+  - Pas de risques de synchronisation entre contrats
 
 ```shell
 npx hardhat test
