@@ -1,8 +1,6 @@
 # Node modules
 /node_modules
 package-lock.json
-yarn.lock
-pnpm-lock.yaml
 
 # Compilation output
 /dist
@@ -36,16 +34,10 @@ pnpm-lock.yaml
 *~
 .DS_Store
 
-# Ignition deployments
-/ignition/deployments
-deployments/
-
 # Logs
 logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Hardhat
 .hardhat_node_modules

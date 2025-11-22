@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-f04e1c631234ce8ccb62ab06a302b3b76131150d",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "userSourceNameMap": {
+    "contracts/PrivateERC20.sol": "project/contracts/PrivateERC20.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "optimizer": {
+        "enabled": true,
+        "runs": 200
+      },
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode",
+            "evm.deployedBytecode",
+            "evm.methodIdentifiers",
+            "metadata"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/PrivateERC20.sol": {
+        "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\n/**\n * @title PrivateERC20\n * @dev ERC20-like token with encrypted balances for privacy\n * Designed to work with iExec TEE for off-chain decryption\n * All state is encrypted with a single public key\n */\ncontract PrivateERC20 {\n    string public name;\n    string public symbol;\n    uint8 public decimals;\n    uint256 public totalSupply;\n    \n    // Public key used to encrypt all balances (stored as bytes for flexibility)\n    bytes public encryptionPublicKey;\n    \n    // Encrypted balances mapping: address => encrypted balance\n    mapping(address => bytes) public encryptedBalances;\n    \n    // Events\n    event Mint(address indexed to, bytes encryptedAmount);\n    event BalanceUpdate(address indexed account, bytes newEncryptedBalance);\n    event TransferRequested(\n        address indexed from,\n        address indexed to,\n        bytes encryptedAmount\n    );\n    \n    constructor(\n        string memory _name,\n        string memory _symbol,\n        uint8 _decimals,\n        bytes memory _encryptionPublicKey\n    ) {\n        name = _name;\n        symbol = _symbol;\n        decimals = _decimals;\n        encryptionPublicKey = _encryptionPublicKey;\n        totalSupply = 0;\n    }\n    \n    /**\n     * @dev Mint tokens with encrypted amount\n     * @param to Address to mint tokens to\n     * @param encryptedAmount Encrypted amount to mint\n     */\n    function mint(address to, bytes calldata encryptedAmount) external {\n        require(to != address(0), \"Cannot mint to zero address\");\n        require(encryptedAmount.length > 0, \"Invalid encrypted amount\");\n        \n        // Store the encrypted balance (encrypted with the contract's public key)\n        encryptedBalances[to] = encryptedAmount;\n        \n        emit Mint(to, encryptedAmount);\n    }\n    \n    /**\n     * @dev Request a transfer operation to be processed by TEE\n     * @param to Recipient address\n     * @param encryptedAmount Encrypted amount to transfer\n     */\n    function transfer(address to, bytes calldata encryptedAmount) external {\n        require(to != address(0), \"Cannot transfer to zero address\");\n        require(to != msg.sender, \"Cannot transfer to self\");\n        require(encryptedAmount.length > 0, \"Invalid encrypted amount\");\n        \n        //TODO: Call iExec MatchOrder to process the transfer in TEE off-chain\n        emit TransferRequested(msg.sender, to, encryptedAmount);\n    }\n    \n    /**\n     * @dev Update encrypted balances for sender and receiver\n     * This function should only be called by the iExec TEE enclave\n     * after off-chain decryption and computation of transfer\n     * All amounts are encrypted with the contract's public key\n     * @param sender Sender address\n     * @param receiver Receiver address\n     * @param senderNewBalance New encrypted balance for sender\n     * @param receiverNewBalance New encrypted balance for receiver\n     */\n    function updateBalance(\n        address sender,\n        address receiver,\n        bytes calldata senderNewBalance,\n        bytes calldata receiverNewBalance\n    ) external {\n        require(sender != address(0), \"Invalid sender\");\n        require(receiver != address(0), \"Invalid receiver\");\n        require(senderNewBalance.length > 0, \"Invalid sender balance\");\n        require(receiverNewBalance.length > 0, \"Invalid receiver balance\");\n        \n        encryptedBalances[sender] = senderNewBalance;\n        encryptedBalances[receiver] = receiverNewBalance;\n        \n        emit BalanceUpdate(sender, senderNewBalance);\n        emit BalanceUpdate(receiver, receiverNewBalance);\n    }\n    \n    /**\n     * @dev Get encrypted balance of an account\n     * @param account Account to query\n     * @return Encrypted balance\n     */\n    function balanceOf(address account) external view returns (bytes memory) {\n        return encryptedBalances[account];\n    }\n}"
+      }
+    }
+  }
+}
