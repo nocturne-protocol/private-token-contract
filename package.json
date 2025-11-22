@@ -10,6 +10,7 @@
     "store-orders:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network arbitrumSepolia",
     "store-orders:sepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network sepolia",
     "store-orders:baseSepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network baseSepolia",
+    "deposit-srlc:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/depositSRLC.ts --network arbitrumSepolia",
     "transfer:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network arbitrumSepolia",
     "transfer:sepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network sepolia",
     "transfer:baseSepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network baseSepolia",

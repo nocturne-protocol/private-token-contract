@@ -117,9 +117,7 @@ npm run deploy:arbitrumSepolia
 **Étape 2: Configurer les orders iExec**
 
 ```bash
-# Définir l'adresse du contrat déployé
-export CONTRACT_ADDRESS=0x...
-
+# Éditer scripts/storeOrders.ts pour définir CONTRACT_ADDRESS
 # Stocker les orders depuis iExec orderbook
 npm run store-orders:arbitrumSepolia
 ```
@@ -129,7 +127,23 @@ Le script va automatiquement:
 - ✅ Les stocker dans le contrat
 - ✅ Vérifier que tout est configuré correctement
 
-**Étape 3: Effectuer un transfert**
+**Étape 3: Déposer des sRLC pour le contrat**
+
+```bash
+# Le script lit automatiquement l'adresse du contrat déployé
+# Éditer scripts/depositSRLC.ts pour ajuster AMOUNT si nécessaire (par défaut: 1.0 RLC)
+npm run deposit-srlc:arbitrumSepolia
+```
+
+Le script va automatiquement:
+- ✅ Détecter l'adresse du contrat déployé depuis Hardhat Ignition
+- ✅ Lire la configuration Poco depuis config.json
+- ✅ Vérifier votre balance RLC
+- ✅ Approuver le contrat Poco
+- ✅ Déposer des RLC en tant que sRLC pour le contrat
+- ✅ Le contrat pourra maintenant payer pour les calculs iExec
+
+**Étape 4: Effectuer un transfert**
 
 ```bash
 # Éditer scripts/transfer.ts pour définir:
@@ -146,7 +160,7 @@ Le script va automatiquement:
 - ✅ Appeler la fonction transfer() avec paiement iExec
 - ✅ Le TEE traitera le transfert de manière confidentielle
 
-**Étape 4: Le contrat est prêt!**
+**Étape 5: Le contrat est prêt!**
 
 Les utilisateurs peuvent maintenant appeler `transfer()` et le système iExec TEE traitera les calculs de manière confidentielle.
 
@@ -172,6 +186,7 @@ ignition/modules/
 scripts/
 ├── generateKeypair.ts       # Génération de paires de clés
 ├── storeOrders.ts           # Récupération et stockage des orders iExec
+├── depositSRLC.ts           # Dépôt de sRLC dans le contrat
 ├── transfer.ts              # Script de transfert de tokens
 └── mint.ts                  # Script de mint
 ```
