@@ -4,7 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "hardhat compile",
-    "deploy": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia",
+    "deploy": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts",
+    "deploy:arbitrumSepolia": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia",
+    "verify": "hardhat ignition verify chain-421614 --network arbitrumSepolia",
     "test": "dotenv -e .env -- hardhat test",
     "test:solidity": "dotenv -e .env -- hardhat test solidity",
     "compile": "hardhat compile",
@@ -13,6 +15,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.0.5",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
+    "@nomicfoundation/hardhat-verify": "^3.0.7",
     "@types/chai": "^5.2.3",
     "@types/node": "^22.19.1",
     "chai": "^6.2.1",

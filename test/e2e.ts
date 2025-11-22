@@ -4,28 +4,34 @@ import { network } from "hardhat";
 import { PrivateKey } from "eciesjs";
 import { toHex } from "viem";
 import { encryptAmount, decryptBalance } from "./utils.js";
+import {PrivateERC20TestModule} from "../ignition/modules/PrivateERC20Test.js";
 
 describe("PrivateERC20 E2E Tests", async () => {
-  const { viem, networkHelpers } = await network.connect();
+  const { viem, ignition } = await network.connect();
 
+  // Helper to deploy contract with Ignition
   async function deployFixture() {
     const privateKey = new PrivateKey();
     const publicKey = privateKey.publicKey;
+    const encryptionPublicKey = toHex(publicKey.toBytes());
     const [deployer, user1, user2] = await viem.getWalletClients();
 
-    const token = await viem.deployContract("PrivateERC20", [
-      "PrivateToken",
-      "PRIV",
-      18,
-      toHex(publicKey.toBytes()),
-    ]);
+    const { privateERC20: token } = await ignition.deploy(
+      PrivateERC20TestModule,
+      {
+        parameters: {
+          PrivateERC20Test: {
+            encryptionPublicKey,
+          },
+        },
+      }
+    );
 
     return { token, privateKey, publicKey, deployer, user1, user2 };
   }
 
   it("should mint tokens with encrypted amount", async () => {
-    const { token, publicKey, deployer, user1 } =
-      await networkHelpers.loadFixture(deployFixture);
+    const { token, publicKey, deployer, user1 } = await deployFixture();
 
     const amount = 1000n * 10n ** 18n;
     const encrypted = encryptAmount(publicKey, amount);
@@ -49,7 +55,7 @@ describe("PrivateERC20 E2E Tests", async () => {
 
   it("should decrypt minted balance with private key (TEE)", async () => {
     const { token, privateKey, publicKey, deployer, user1 } =
-      await networkHelpers.loadFixture(deployFixture);
+      await deployFixture();
 
     const amount = 1000n * 10n ** 18n;
     const encrypted = encryptAmount(publicKey, amount);
@@ -67,8 +73,7 @@ describe("PrivateERC20 E2E Tests", async () => {
   });
 
   it("should emit TransferRequested on transfer", async () => {
-    const { token, publicKey, deployer, user1, user2 } =
-      await networkHelpers.loadFixture(deployFixture);
+    const { token, publicKey, deployer, user1, user2 } = await deployFixture();
 
     // Mint to user1
     const mintAmount = 1000n * 10n ** 18n;
@@ -96,7 +101,7 @@ describe("PrivateERC20 E2E Tests", async () => {
 
   it("should update balances correctly", async () => {
     const { token, privateKey, publicKey, deployer, user1, user2 } =
-      await networkHelpers.loadFixture(deployFixture);
+      await deployFixture();
 
     const addr1 = user1.account!.address;
     const addr2 = user2.account!.address;
@@ -137,9 +142,7 @@ describe("PrivateERC20 E2E Tests", async () => {
   });
 
   it("should revert mint to zero address", async () => {
-    const { token, publicKey, deployer } = await networkHelpers.loadFixture(
-      deployFixture
-    );
+    const { token, publicKey, deployer } = await deployFixture();
 
     await viem.assertions.revertWith(
       token.write.mint(
@@ -158,8 +161,7 @@ describe("PrivateERC20 E2E Tests", async () => {
   });
 
   it("should revert transfer to self", async () => {
-    const { token, publicKey, deployer, user1 } =
-      await networkHelpers.loadFixture(deployFixture);
+    const { token, publicKey, deployer, user1 } = await deployFixture();
 
     const addr1 = user1.account!.address;
     await token.write.mint([addr1, encryptAmount(publicKey, 1000n)], {
@@ -178,7 +180,7 @@ describe("PrivateERC20 E2E Tests", async () => {
 
   it("should maintain privacy - only TEE can decrypt", async () => {
     const { token, privateKey, publicKey, deployer, user1, user2 } =
-      await networkHelpers.loadFixture(deployFixture);
+      await deployFixture();
 
     const addr1 = user1.account!.address;
     const addr2 = user2.account!.address;
