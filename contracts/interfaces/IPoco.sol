@@ -10,6 +10,28 @@ import {IexecLibOrders_v5} from "../libraries/IexecLibOrders_v5.sol";
  */
 interface IPoco {
     /**
+     * @notice Get the RLC token address
+     * @return The address of the RLC token
+     */
+    function token() external view returns (address);
+
+    /**
+     * @notice Deposit RLC tokens to get sRLC for a target address
+     * @param amount Amount of RLC to deposit
+     * @param target Address to receive the sRLC
+     * @return success True if deposit succeeded
+     */
+    function depositFor(uint256 amount, address target) external returns (bool success);
+
+    /**
+     * @notice Pre-sign a request order to avoid requiring signature during matchOrders
+     * @param _requestorderoperation The request order operation containing the order and SIGN operation
+     */
+    function manageRequestOrder(
+        IexecLibOrders_v5.RequestOrderOperation calldata _requestorderoperation
+    ) external;
+
+    /**
      * @notice Match orders to create a deal on the iExec protocol
      * @param _apporder The app order
      * @param _datasetorder The dataset order

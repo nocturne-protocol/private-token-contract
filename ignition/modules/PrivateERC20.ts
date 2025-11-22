@@ -1,6 +1,4 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
-import { PrivateKey } from "eciesjs";
-import { toHex } from "viem";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -26,86 +24,57 @@ interface Config {
 }
 
 const PrivateERC20Module = buildModule("PrivateERC20Module", (m) => {
-  // Load config
+  // Load config for defaults
   const configPath = path.join(process.cwd(), "config", "config.json");
   const config: Config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+
+  // Default to Arbitrum Sepolia config
+  const defaultConfig = config.chains.arbitrumSepolia;
 
   // Get parameters from config with ability to override
   const tokenName = m.getParameter("name", config.tokenConfig.name);
   const tokenSymbol = m.getParameter("symbol", config.tokenConfig.symbol);
   const decimals = m.getParameter("decimals", config.tokenConfig.decimals);
 
-  // Get chain ID from network context
-  const chainId = m.getParameter("chainId") as unknown as number;
+  console.log(`\n🌐 Deploying PrivateERC20 with Ignition...`);
+  console.log(
+    `   Default config: ${defaultConfig.name} (${defaultConfig.chainId})`
+  );
+  console.log(
+    `   Token: ${config.tokenConfig.name} (${config.tokenConfig.symbol})`
+  );
 
-  // Find chain config
-  let chainConfig: ChainConfig | undefined;
-  for (const cfg of Object.values(config.chains)) {
-    if (cfg.chainId === chainId) {
-      chainConfig = cfg;
-      break;
-    }
-  }
-
-  if (!chainConfig) {
-    throw new Error(
-      `No configuration found for chainId ${chainId}. Please add it to config/config.json`
-    );
-  }
-
-  console.log(`\n🌐 Deploying to: ${chainConfig.name} (chainId: ${chainId})`);
-  console.log(`   isArbitrum: ${chainConfig.isArbitrum}`);
-  console.log(`   pocoOAppRouter: ${chainConfig.pocoOAppRouter}`);
-  console.log(`   pocoAddress: ${chainConfig.pocoAddress}`);
-
-  // Get chain-specific parameters (allow override)
+  // Get chain-specific parameters (with defaults from Arbitrum Sepolia)
+  // Override these via --parameters for other networks
   const pocoOAppRouter = m.getParameter(
     "pocoOAppRouter",
-    chainConfig.pocoOAppRouter
+    defaultConfig.pocoOAppRouter
   ) as unknown as string;
   const pocoAddress = m.getParameter(
     "pocoAddress",
-    chainConfig.pocoAddress
+    defaultConfig.pocoAddress
   ) as unknown as string;
   const isArbitrum = m.getParameter(
     "isArbitrum",
-    chainConfig.isArbitrum
+    defaultConfig.isArbitrum
   ) as unknown as boolean;
   const lzOptions = m.getParameter(
     "lzOptions",
-    chainConfig.lzOptions
+    defaultConfig.lzOptions
   ) as unknown as string;
 
   // Handle encryption key
-  let encryptionPublicKey: string;
-  let generatedPrivateKey: PrivateKey | undefined;
-
-  // Check if provided as parameter
-  const providedKey = m.getParameter(
+  // Allow passing as parameter (for tests) or from environment variable (for production)
+  const encryptionPublicKey = m.getParameter(
     "encryptionPublicKey",
-    ""
+    process.env.ENCRYPTION_PUBLIC_KEY || ""
   ) as unknown as string;
-
-  if (providedKey && providedKey !== "" && providedKey !== "0x") {
-    encryptionPublicKey = providedKey;
-    console.log("\n🔐 Using provided encryption public key");
-    console.log(`   Public Key: ${encryptionPublicKey}`);
-  } else {
-    // Generate new keypair
-    generatedPrivateKey = new PrivateKey();
-    encryptionPublicKey = toHex(generatedPrivateKey.publicKey.toBytes());
-    console.log("\n🔐 Generated new encryption keypair:");
-    console.log(`   Private Key: ${generatedPrivateKey.toHex()}`);
-    console.log(`   Public Key:  ${encryptionPublicKey}`);
-    console.warn(
-      "   ⚠️  Save the private key securely - it cannot be recovered!"
-    );
+  
+  if (!encryptionPublicKey) {
+    throw new Error("ENCRYPTION_PUBLIC_KEY environment variable or parameter is required");
   }
-
-  console.log(`\n📦 Token Configuration:`);
-  console.log(`   Name: ${tokenName}`);
-  console.log(`   Symbol: ${tokenSymbol}`);
-  console.log(`   Decimals: ${decimals}`);
+  
+  console.log(`   🔐 Using encryption public key`);
 
   // Deploy contract
   const privateERC20 = m.contract("PrivateERC20", [

@@ -107,20 +107,48 @@ forge test
 
 ### Déploiement
 
-Déploiement avec Hardhat Ignition (recommandé) :
+**Étape 1: Déployer le contrat**
 
 ```bash
-# Sepolia
-npx hardhat ignition deploy ignition/modules/PrivateERC20.ts --network sepolia --parameters '{"chainId": 11155111}'
-
-# Base Sepolia
-npx hardhat ignition deploy ignition/modules/PrivateERC20.ts --network baseSepolia --parameters '{"chainId": 84532}'
-
-# Arbitrum Sepolia
-npx hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia --parameters '{"chainId": 421614}'
+# Arbitrum Sepolia (recommandé)
+npm run deploy:arbitrumSepolia
 ```
 
-Le module génère automatiquement une paire de clés de chiffrement ou utilise `ENCRYPTION_PUBLIC_KEY` si fournie via paramètres.
+**Étape 2: Configurer les orders iExec**
+
+```bash
+# Définir l'adresse du contrat déployé
+export CONTRACT_ADDRESS=0x...
+
+# Stocker les orders depuis iExec orderbook
+npm run store-orders:arbitrumSepolia
+```
+
+Le script va automatiquement:
+- ✅ Récupérer les AppOrder et WorkerpoolOrder depuis iExec
+- ✅ Les stocker dans le contrat
+- ✅ Vérifier que tout est configuré correctement
+
+**Étape 3: Effectuer un transfert**
+
+```bash
+# Éditer scripts/transfer.ts pour définir:
+# - CONTRACT_ADDRESS: adresse du contrat déployé
+# - RECIPIENT: adresse du destinataire
+# - AMOUNT: montant à transférer (en tokens)
+
+npm run transfer:arbitrumSepolia
+```
+
+Le script va automatiquement:
+- ✅ Récupérer la clé publique de chiffrement du contrat
+- ✅ Chiffrer le montant du transfert
+- ✅ Appeler la fonction transfer() avec paiement iExec
+- ✅ Le TEE traitera le transfert de manière confidentielle
+
+**Étape 4: Le contrat est prêt!**
+
+Les utilisateurs peuvent maintenant appeler `transfer()` et le système iExec TEE traitera les calculs de manière confidentielle.
 
 ## 🔐 Sécurité
 
@@ -143,6 +171,8 @@ ignition/modules/
 
 scripts/
 ├── generateKeypair.ts       # Génération de paires de clés
+├── storeOrders.ts           # Récupération et stockage des orders iExec
+├── transfer.ts              # Script de transfert de tokens
 └── mint.ts                  # Script de mint
 ```
 

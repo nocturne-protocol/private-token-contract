@@ -79,5 +79,24 @@ library IexecLibOrders_v5 {
         bytes32 salt;               // Unique salt for order
         bytes sign;                 // Signature of the order
     }
+
+    /**
+     * @notice Order operation enum for manageRequestOrder
+     * @dev Used to specify the type of operation to perform on an order
+     */
+    enum OrderOperationEnum {
+        SIGN,      // Pre-sign the order (no signature required in matchOrders)
+        CLOSE      // Close/cancel the order
+    }
+
+    /**
+     * @notice Request order operation structure
+     * @dev Used with manageRequestOrder to pre-sign orders
+     */
+    struct RequestOrderOperation {
+        RequestOrder order;           // The request order to manage
+        OrderOperationEnum operation; // Operation to perform (SIGN or CLOSE)
+        bytes sign;                   // Signature (can be empty for contract calls)
+    }
 }
 

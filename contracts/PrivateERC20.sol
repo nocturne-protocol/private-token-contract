@@ -157,7 +157,7 @@ contract PrivateERC20 is IPrivateERC20 {
             datasetmaxprice: 0,
             workerpool: workerpoolOrder.workerpool,
             workerpoolmaxprice: workerpoolOrder.workerpoolprice,
-            requester: msg.sender,
+            requester: address(this),
             volume: 1, // Single task
             tag: appOrder.tag,
             category: workerpoolOrder.category,
@@ -166,12 +166,11 @@ contract PrivateERC20 is IPrivateERC20 {
             callback: address(this),
             params: _buildTransferParams(msg.sender, to, encryptedAmount),
             salt: keccak256(abi.encodePacked(msg.sender, to, block.timestamp)),
-            sign: "" // Will be signed via presignature or sponsorMatchOrders doesn't need signature
+            sign: "" // Empty - will be pre-signed via manageRequestOrder
         });
         
         // Call matchOrders via PocoOApp router
         bytes32 dealId = _callMatchOrders(requestOrder);
-        
         emit TransferRequested(msg.sender, to, encryptedAmount,dealId);
     }
     
@@ -211,7 +210,18 @@ contract PrivateERC20 is IPrivateERC20 {
             // On Arbitrum, call Poco directly
             require(pocoAddress != address(0), "Poco address not set");
             
-            // Direct call to the Poco contract
+            // Pre-sign the request order using manageRequestOrder
+            // This allows the contract to be the requester without needing an off-chain signature
+            IexecLibOrders_v5.RequestOrderOperation memory requestOrderOperation = 
+                IexecLibOrders_v5.RequestOrderOperation({
+                    order: requestOrder,
+                    operation: IexecLibOrders_v5.OrderOperationEnum.SIGN,
+                    sign: new bytes(0)
+                });
+            
+            IPoco(pocoAddress).manageRequestOrder(requestOrderOperation);
+            
+            // Now call matchOrders with the pre-signed request order
             bytes32 dealId = IPoco(pocoAddress).matchOrders(
                 appOrder,
                 datasetOrder,
