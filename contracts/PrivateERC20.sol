@@ -5,12 +5,16 @@ pragma solidity ^0.8.28;
  * @title PrivateERC20
  * @dev ERC20-like token with encrypted balances for privacy
  * Designed to work with iExec TEE for off-chain decryption
+ * All state is encrypted with a single public key
  */
 contract PrivateERC20 {
     string public name;
     string public symbol;
     uint8 public decimals;
     uint256 public totalSupply;
+    
+    // Public key used to encrypt all balances (stored as bytes for flexibility)
+    bytes public encryptionPublicKey;
     
     // Encrypted balances mapping: address => encrypted balance
     mapping(address => bytes) public encryptedBalances;
@@ -27,11 +31,13 @@ contract PrivateERC20 {
     constructor(
         string memory _name,
         string memory _symbol,
-        uint8 _decimals
+        uint8 _decimals,
+        bytes memory _encryptionPublicKey
     ) {
         name = _name;
         symbol = _symbol;
         decimals = _decimals;
+        encryptionPublicKey = _encryptionPublicKey;
         totalSupply = 0;
     }
     
@@ -44,7 +50,7 @@ contract PrivateERC20 {
         require(to != address(0), "Cannot mint to zero address");
         require(encryptedAmount.length > 0, "Invalid encrypted amount");
         
-        // Store the encrypted balance (this will need to be updated by TEE)
+        // Store the encrypted balance (encrypted with the contract's public key)
         encryptedBalances[to] = encryptedAmount;
         
         emit Mint(to, encryptedAmount);
@@ -68,6 +74,7 @@ contract PrivateERC20 {
      * @dev Update encrypted balances for sender and receiver
      * This function should only be called by the iExec TEE enclave
      * after off-chain decryption and computation of transfer
+     * All amounts are encrypted with the contract's public key
      * @param sender Sender address
      * @param receiver Receiver address
      * @param senderNewBalance New encrypted balance for sender

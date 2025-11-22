@@ -1,8 +1,12 @@
 # Node modules
 /node_modules
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
 # Compilation output
 /dist
+/build
 
 # pnpm deploy output
 /bundle
@@ -18,3 +22,30 @@
 
 # Hardhat coverage reports
 /coverage
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Ignition deployments
+/ignition/deployments
+deployments/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Hardhat
+.hardhat_node_modules

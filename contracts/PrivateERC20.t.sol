@@ -9,6 +9,7 @@ contract PrivateERC20Test is Test {
     address user1;
     address user2;
     uint256 arbitrumSepoliaFork;
+    bytes encryptionPublicKey;
 
     function setUp() public {
         // Create fork of Arbitrum Sepolia
@@ -19,8 +20,11 @@ contract PrivateERC20Test is Test {
         user1 = address(0x1);
         user2 = address(0x2);
         
-        // Deploy PrivateERC20 contract
-        privateToken = new PrivateERC20("PrivateToken", "PRIV", 18);
+        // Example encryption public key (in real scenario, this comes from ECIES keypair)
+        encryptionPublicKey = hex"0400e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4e0b4";
+        
+        // Deploy PrivateERC20 contract with public key
+        privateToken = new PrivateERC20("PrivateToken", "PRIV", 18, encryptionPublicKey);
     }
 
     function test_InitialState() public view {

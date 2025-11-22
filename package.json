@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "build": "hardhat compile",
-    "test": "hardhat test",
+    "deploy": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia",
+    "test": "dotenv -e .env -- hardhat test",
     "test:solidity": "dotenv -e .env -- hardhat test solidity",
     "compile": "hardhat compile",
     "clean": "hardhat clean"
@@ -12,8 +13,11 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.0.5",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
+    "@types/chai": "^5.2.3",
     "@types/node": "^22.19.1",
+    "chai": "^6.2.1",
     "dotenv-cli": "^11.0.0",
+    "eciesjs": "^0.4.16",
     "forge-std": "github:foundry-rs/forge-std#v1.9.7",
     "hardhat": "^3.0.15",
     "typescript": "~5.8.0",
