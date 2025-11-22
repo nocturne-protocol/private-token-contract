@@ -2,7 +2,7 @@ import { network } from "hardhat";
 import { IExec, utils } from 'iexec';
 
 // Configuration - Update these for your deployment
-const CONTRACT_ADDRESS = "0x0d60d494cbC4438066a4C1a6154Aa89cF83b4874";
+const CONTRACT_ADDRESS = "0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7";
 const APP_ADDRESS = "0xbb21e58a72327a5fda6f5d3673f1fab6607aeab1";
 const WORKERPOOL_ADDRESS = "0xb967057a21dc6a66a29721d96b8aa7454b7c383f";
 

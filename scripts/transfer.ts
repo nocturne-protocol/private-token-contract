@@ -3,7 +3,7 @@ import { parseEther } from "viem";
 import { encryptAmount } from "../test/utils.js";
 
 // Configuration - Update these for your deployment
-const CONTRACT_ADDRESS = "0x0d60d494cbC4438066a4C1a6154Aa89cF83b4874";
+const CONTRACT_ADDRESS = "0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7";
 const RECIPIENT = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"; // Update with recipient address
 const AMOUNT = "100"; // Amount in tokens (e.g., "100" for 100 tokens)
 const IEXEC_PAYMENT = "0.01"; // ETH to send for iExec payment
