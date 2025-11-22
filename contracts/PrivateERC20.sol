@@ -189,13 +189,14 @@ contract PrivateERC20 is IPrivateERC20 {
     ) private pure returns (string memory) {
         // Build space-separated args for the iExec app
         // Format: encrypteddata sender recipient
-        return string(abi.encodePacked(
+        // Using string.concat for cleaner and safer concatenation
+        return string.concat(
             _bytesToHexString(encryptedAmount),
             ' ',
             _addressToString(from),
             ' ',
             _addressToString(to)
-        ));
+        );
     }
     
     /**

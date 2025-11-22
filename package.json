@@ -9,6 +9,7 @@
     "mint:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/mint.ts --network arbitrumSepolia",
     "verify:arbitrumSepolia": "dotenv -e .env -- hardhat ignition verify chain-421614 --network arbitrumSepolia",
     "test": "dotenv -e .env -- hardhat test --gas-stats",
+    "test:iexec": "dotenv -e .env -- hardhat test test/iexec-integration.ts --gas-stats",
     "test:solidity": "dotenv -e .env -- hardhat test solidity --gas-stats -vvv",
     "compile": "hardhat compile",
     "clean": "hardhat clean"
@@ -24,6 +25,7 @@
     "eciesjs": "^0.4.16",
     "forge-std": "github:foundry-rs/forge-std#v1.9.7",
     "hardhat": "^3.0.15",
+    "iexec": "^8.8.0",
     "typescript": "~5.8.0",
     "viem": "^2.39.3"
   }

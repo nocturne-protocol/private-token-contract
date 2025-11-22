@@ -107,9 +107,20 @@ forge test
 
 ### Déploiement
 
+Déploiement avec Hardhat Ignition (recommandé) :
+
 ```bash
-npx hardhat run scripts/deploy.ts --network <network>
+# Sepolia
+npx hardhat ignition deploy ignition/modules/PrivateERC20.ts --network sepolia --parameters '{"chainId": 11155111}'
+
+# Base Sepolia
+npx hardhat ignition deploy ignition/modules/PrivateERC20.ts --network baseSepolia --parameters '{"chainId": 84532}'
+
+# Arbitrum Sepolia
+npx hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia --parameters '{"chainId": 421614}'
 ```
+
+Le module génère automatiquement une paire de clés de chiffrement ou utilise `ENCRYPTION_PUBLIC_KEY` si fournie via paramètres.
 
 ## 🔐 Sécurité
 
@@ -124,8 +135,15 @@ contracts/
 ├── PrivateERC20.sol         # Contrat principal
 └── PrivateERC20.t.sol       # Tests Forge
 
+config/
+└── config.json              # Configuration des chaînes
+
+ignition/modules/
+└── PrivateERC20.ts          # Module de déploiement Ignition
+
 scripts/
-└── deploy.ts                # Script de déploiement
+├── generateKeypair.ts       # Génération de paires de clés
+└── mint.ts                  # Script de mint
 ```
 
 ## 🛠️ Pourquoi un seul contrat ?
