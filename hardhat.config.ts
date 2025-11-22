@@ -15,7 +15,7 @@ export default defineConfig({
   },
   verify: {
     etherscan: {
-      apiKey: "YOUR_ETHERSCAN_API_KEY",
+      apiKey: configVariable("ETHERSCAN_API_KEY"),
     },
   },
   networks: {

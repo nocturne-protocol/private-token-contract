@@ -6,9 +6,9 @@
     "build": "hardhat compile",
     "deploy": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts",
     "deploy:arbitrumSepolia": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia",
-    "verify": "hardhat ignition verify chain-421614 --network arbitrumSepolia",
-    "test": "dotenv -e .env -- hardhat test",
-    "test:solidity": "dotenv -e .env -- hardhat test solidity",
+    "verify:arbitrumSepolia": "dotenv -e .env -- hardhat ignition verify chain-421614 --network arbitrumSepolia",
+    "test": "dotenv -e .env -- hardhat test --gas-stats",
+    "test:solidity": "dotenv -e .env -- hardhat test solidity --gas-stats",
     "compile": "hardhat compile",
     "clean": "hardhat clean"
   },
