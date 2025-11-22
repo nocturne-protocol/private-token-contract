@@ -4,7 +4,7 @@ import { network } from "hardhat";
 import { PrivateKey } from "eciesjs";
 import { toHex } from "viem";
 import { encryptAmount, decryptBalance } from "./utils.js";
-import {PrivateERC20TestModule} from "../ignition/modules/PrivateERC20Test.js";
+import PrivateERC20TestModule from "../ignition/modules/PrivateERC20.js";
 
 describe("PrivateERC20 E2E Tests", async () => {
   const { viem, ignition } = await network.connect();
