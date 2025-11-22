@@ -6,205 +6,219 @@ import { toHex } from "viem";
 import { encryptAmount, decryptBalance } from "./utils.js";
 import PrivateERC20TestModule from "../ignition/modules/PrivateERC20.js";
 
+// Connect to all 3 networks
+const sepoliaConnection = await network.connect("sepoliaFork");
+const baseSepoliaConnection = await network.connect("baseSepoliaFork");
+const arbitrumSepoliaConnection = await network.connect("arbitrumSepoliaFork");
+
+const NETWORKS = [
+  { name: "Sepolia", connection: sepoliaConnection },
+  // { name: "Base Sepolia", connection: baseSepoliaConnection },
+  { name: "Arbitrum Sepolia", connection: arbitrumSepoliaConnection },
+] as const;
+
 describe("PrivateERC20 E2E Tests", async () => {
-  const { viem, ignition } = await network.connect();
+  
+  for (const { name, connection } of NETWORKS) {
+    const { viem, ignition } = connection;
 
-  // Helper to deploy contract with Ignition
-  async function deployFixture() {
-    const privateKey = new PrivateKey();
-    const publicKey = privateKey.publicKey;
-    const encryptionPublicKey = toHex(publicKey.toBytes());
-    const [deployer, user1, user2] = await viem.getWalletClients();
+    // Helper to deploy contract with Ignition
+    async function deployFixture() {
+      const privateKey = new PrivateKey();
+      const publicKey = privateKey.publicKey;
+      const encryptionPublicKey = toHex(publicKey.toBytes());
 
-    const { privateERC20: token } = await ignition.deploy(
-      PrivateERC20TestModule,
-      {
-        parameters: {
-          PrivateERC20Test: {
-            encryptionPublicKey,
-          },
-        },
-      }
-    );
+      const [deployer, user1, user2] = await viem.getWalletClients();
 
-    return { token, privateKey, publicKey, deployer, user1, user2 };
-  }
-
-  it("should mint tokens with encrypted amount", async () => {
-    const { token, publicKey, deployer, user1 } = await deployFixture();
-
-    const amount = 1000n * 10n ** 18n;
-    const encrypted = encryptAmount(publicKey, amount);
-
-    await viem.assertions.emit(
-      token.write.mint([user1.account!.address, encrypted], {
-        account: deployer.account!.address,
-      }),
-      token,
-      "Mint"
-    );
-
-    const stored = await token.read.balanceOf([user1.account!.address]);
-    expect(stored.toLowerCase()).to.equal(
-      encrypted.toLowerCase(),
-      "Encrypted balance not stored correctly"
-    );
-
-    console.log("✅ Tokens minted with encrypted amount");
-  });
-
-  it("should decrypt minted balance with private key (TEE)", async () => {
-    const { token, privateKey, publicKey, deployer, user1 } =
-      await deployFixture();
-
-    const amount = 1000n * 10n ** 18n;
-    const encrypted = encryptAmount(publicKey, amount);
-
-    await token.write.mint([user1.account!.address, encrypted], {
-      account: deployer.account!.address,
-    });
-
-    const stored = await token.read.balanceOf([user1.account!.address]);
-    const decrypted = decryptBalance(privateKey, stored);
-
-    expect(decrypted).to.equal(amount);
-
-    console.log("✅ Balance decrypted correctly with private key");
-  });
-
-  it("should emit TransferRequested on transfer", async () => {
-    const { token, publicKey, deployer, user1, user2 } = await deployFixture();
-
-    // Mint to user1
-    const mintAmount = 1000n * 10n ** 18n;
-    await token.write.mint(
-      [user1.account!.address, encryptAmount(publicKey, mintAmount)],
-      {
-        account: deployer.account!.address,
-      }
-    );
-
-    // Transfer from user1 to user2
-    const transferAmount = 100n * 10n ** 18n;
-    const encrypted = encryptAmount(publicKey, transferAmount);
-
-    await viem.assertions.emit(
-      token.write.transfer([user2.account!.address, encrypted], {
-        account: user1.account!.address,
-      }),
-      token,
-      "TransferRequested"
-    );
-
-    console.log("✅ Transfer request emitted");
-  });
-
-  it("should update balances correctly", async () => {
-    const { token, privateKey, publicKey, deployer, user1, user2 } =
-      await deployFixture();
-
-    const addr1 = user1.account!.address;
-    const addr2 = user2.account!.address;
-
-    // Mint to user1
-    const mintAmount = 1000n * 10n ** 18n;
-    await token.write.mint([addr1, encryptAmount(publicKey, mintAmount)], {
-      account: deployer.account!.address,
-    });
-
-    // Simulate TEE computing new balances after transfer
-    const transferAmount = 100n * 10n ** 18n;
-    const newBalance1 = encryptAmount(publicKey, mintAmount - transferAmount);
-    const newBalance2 = encryptAmount(publicKey, transferAmount);
-
-    await viem.assertions.emit(
-      token.write.updateBalance([addr1, addr2, newBalance1, newBalance2], {
-        account: deployer.account!.address,
-      }),
-      token,
-      "BalanceUpdate"
-    );
-
-    // Verify by decryption
-    const decrypted1 = decryptBalance(
-      privateKey,
-      await token.read.balanceOf([addr1])
-    );
-    const decrypted2 = decryptBalance(
-      privateKey,
-      await token.read.balanceOf([addr2])
-    );
-
-    expect(decrypted1).to.equal(900n * 10n ** 18n);
-    expect(decrypted2).to.equal(100n * 10n ** 18n);
-
-    console.log("✅ Balances updated and verified");
-  });
-
-  it("should revert mint to zero address", async () => {
-    const { token, publicKey, deployer } = await deployFixture();
-
-    await viem.assertions.revertWith(
-      token.write.mint(
-        [
-          "0x0000000000000000000000000000000000000000",
-          encryptAmount(publicKey, 100n),
-        ],
+      const { privateERC20: token } = await ignition.deploy(
+        PrivateERC20TestModule,
         {
-          account: deployer.account!.address,
+          parameters: {
+            PrivateERC20Test: {
+              encryptionPublicKey,
+            },
+          },
         }
-      ),
-      "Cannot mint to zero address"
-    );
+      );
 
-    console.log("✅ Mint to zero address reverted");
-  });
+      return { token, privateKey, publicKey, deployer, user1, user2 };
+    }
 
-  it("should revert transfer to self", async () => {
-    const { token, publicKey, deployer, user1 } = await deployFixture();
+    it(`[${name}] should mint tokens with encrypted amount`, async () => {
+      const { token, publicKey, deployer, user1 } = await deployFixture();
 
-    const addr1 = user1.account!.address;
-    await token.write.mint([addr1, encryptAmount(publicKey, 1000n)], {
-      account: deployer.account!.address,
+      const amount = 1000n * 10n ** 18n;
+      const encrypted = encryptAmount(publicKey, amount);
+
+      await viem.assertions.emit(
+        token.write.mint([user1.account!.address, encrypted], {
+          account: deployer.account!.address,
+        }),
+        token,
+        "Mint"
+      );
+
+      const stored = await token.read.balanceOf([user1.account!.address]);
+      expect(stored.toLowerCase()).to.equal(
+        encrypted.toLowerCase(),
+        "Encrypted balance not stored correctly"
+      );
+
+      console.log(`✅ [${name}] Tokens minted with encrypted amount`);
     });
 
-    await viem.assertions.revertWith(
-      token.write.transfer([addr1, encryptAmount(publicKey, 100n)], {
-        account: addr1,
-      }),
-      "Cannot transfer to self"
-    );
+    it(`[${name}] should decrypt minted balance with private key (TEE)`, async () => {
+      const { token, privateKey, publicKey, deployer, user1 } =
+        await deployFixture();
 
-    console.log("✅ Transfer to self reverted");
-  });
+      const amount = 1000n * 10n ** 18n;
+      const encrypted = encryptAmount(publicKey, amount);
 
-  it("should maintain privacy - only TEE can decrypt", async () => {
-    const { token, privateKey, publicKey, deployer, user1, user2 } =
-      await deployFixture();
+      await token.write.mint([user1.account!.address, encrypted], {
+        account: deployer.account!.address,
+      });
 
-    const addr1 = user1.account!.address;
-    const addr2 = user2.account!.address;
-    const amount1 = 500n * 10n ** 18n;
-    const amount2 = 300n * 10n ** 18n;
+      const stored = await token.read.balanceOf([user1.account!.address]);
+      const decrypted = decryptBalance(privateKey, stored);
 
-    await token.write.mint([addr1, encryptAmount(publicKey, amount1)], {
-      account: deployer.account!.address,
-    });
-    await token.write.mint([addr2, encryptAmount(publicKey, amount2)], {
-      account: deployer.account!.address,
+      expect(decrypted).to.equal(amount);
+      console.log(`✅ [${name}] Balance decrypted correctly with private key`);
     });
 
-    // Balances are opaque hex strings on-chain
-    const balance1 = await token.read.balanceOf([addr1]);
-    const balance2 = await token.read.balanceOf([addr2]);
+    it(`[${name}] should emit TransferRequested on transfer`, async () => {
+      const { token, publicKey, deployer, user1, user2 } =
+        await deployFixture();
 
-    expect(balance1).to.match(/^0x/);
-    expect(balance2).to.match(/^0x/);
+      // Mint to user1
+      const mintAmount = 1000n * 10n ** 18n;
+      await token.write.mint(
+        [user1.account!.address, encryptAmount(publicKey, mintAmount)],
+        { account: deployer.account!.address }
+      );
 
-    // Only TEE can decrypt
-    expect(decryptBalance(privateKey, balance1)).to.equal(amount1);
-    expect(decryptBalance(privateKey, balance2)).to.equal(amount2);
+      // Transfer from user1 to user2
+      const transferAmount = 100n * 10n ** 18n;
+      const encrypted = encryptAmount(publicKey, transferAmount);
 
-    console.log("✅ Privacy maintained: only TEE can decrypt balances");
-  });
+      await viem.assertions.emit(
+        token.write.transfer([user2.account!.address, encrypted], {
+          account: user1.account!.address,
+        }),
+        token,
+        "TransferRequested"
+      );
+
+      console.log(`✅ [${name}] Transfer request emitted`);
+    });
+
+    it(`[${name}] should update balances correctly`, async () => {
+      const { token, privateKey, publicKey, deployer, user1, user2 } =
+        await deployFixture();
+
+      const addr1 = user1.account!.address;
+      const addr2 = user2.account!.address;
+
+      // Mint to user1
+      const mintAmount = 1000n * 10n ** 18n;
+      await token.write.mint([addr1, encryptAmount(publicKey, mintAmount)], {
+        account: deployer.account!.address,
+      });
+
+      // Simulate TEE computing new balances after transfer
+      const transferAmount = 100n * 10n ** 18n;
+      const newBalance1 = encryptAmount(publicKey, mintAmount - transferAmount);
+      const newBalance2 = encryptAmount(publicKey, transferAmount);
+
+      await viem.assertions.emit(
+        token.write.updateBalance([addr1, addr2, newBalance1, newBalance2], {
+          account: deployer.account!.address,
+        }),
+        token,
+        "BalanceUpdate"
+      );
+
+      // Verify by decryption
+      const decrypted1 = decryptBalance(
+        privateKey,
+        await token.read.balanceOf([addr1])
+      );
+      const decrypted2 = decryptBalance(
+        privateKey,
+        await token.read.balanceOf([addr2])
+      );
+
+      expect(decrypted1).to.equal(900n * 10n ** 18n);
+      expect(decrypted2).to.equal(100n * 10n ** 18n);
+
+      console.log(`✅ [${name}] Balances updated and verified`);
+    });
+
+    it(`[${name}] should revert mint to zero address`, async () => {
+      const { token, publicKey, deployer } = await deployFixture();
+
+      await viem.assertions.revertWith(
+        token.write.mint(
+          [
+            "0x0000000000000000000000000000000000000000",
+            encryptAmount(publicKey, 100n),
+          ],
+          { account: deployer.account!.address }
+        ),
+        "Cannot mint to zero address"
+      );
+
+      console.log(`✅ [${name}] Mint to zero address reverted`);
+    });
+
+    it(`[${name}] should revert transfer to self`, async () => {
+      const { token, publicKey, deployer, user1 } = await deployFixture();
+      const addr1 = user1.account!.address;
+
+      await token.write.mint([addr1, encryptAmount(publicKey, 1000n)], {
+        account: deployer.account!.address,
+      });
+
+      await viem.assertions.revertWith(
+        token.write.transfer([addr1, encryptAmount(publicKey, 100n)], {
+          account: addr1,
+        }),
+        "Cannot transfer to self"
+      );
+
+      console.log(`✅ [${name}] Transfer to self reverted`);
+    });
+
+    it(`[${name}] should maintain privacy - only TEE can decrypt`, async () => {
+      const { token, privateKey, publicKey, deployer, user1, user2 } =
+        await deployFixture();
+
+      const addr1 = user1.account!.address;
+      const addr2 = user2.account!.address;
+
+      const amount1 = 500n * 10n ** 18n;
+      const amount2 = 300n * 10n ** 18n;
+
+      await token.write.mint([addr1, encryptAmount(publicKey, amount1)], {
+        account: deployer.account!.address,
+      });
+      await token.write.mint([addr2, encryptAmount(publicKey, amount2)], {
+        account: deployer.account!.address,
+      });
+
+      // Balances are opaque hex strings on-chain
+      const balance1 = await token.read.balanceOf([addr1]);
+      const balance2 = await token.read.balanceOf([addr2]);
+
+      expect(balance1).to.match(/^0x/);
+      expect(balance2).to.match(/^0x/);
+
+      // Only TEE can decrypt
+      expect(decryptBalance(privateKey, balance1)).to.equal(amount1);
+      expect(decryptBalance(privateKey, balance2)).to.equal(amount2);
+
+      console.log(
+        `✅ [${name}] Privacy maintained: only TEE can decrypt balances`
+      );
+    });
+  }
 });

@@ -9,7 +9,7 @@
     "mint:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/mint.ts --network arbitrumSepolia",
     "verify:arbitrumSepolia": "dotenv -e .env -- hardhat ignition verify chain-421614 --network arbitrumSepolia",
     "test": "dotenv -e .env -- hardhat test --gas-stats",
-    "test:solidity": "dotenv -e .env -- hardhat test solidity --gas-stats",
+    "test:solidity": "dotenv -e .env -- hardhat test solidity --gas-stats -vvv",
     "compile": "hardhat compile",
     "clean": "hardhat clean"
   },
