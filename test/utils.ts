@@ -2,13 +2,23 @@ import { PrivateKey, decrypt, encrypt } from "eciesjs";
 import { toHex } from "viem";
 
 /**
- * Helper to encrypt an amount using the public key
- * @param publicKey The public key to encrypt with
- * @param amount The amount to encrypt
- * @returns Encrypted amount as hex string
+ * Encrypt an amount using either a PublicKey object (eciesjs) or a hex string.
+ * Accepts:
+ *  - PublicKey instance: uses its toHex()
+ *  - Hex string (0x-prefixed or not): normalizes by stripping 0x
  */
-export const encryptAmount = (publicKey: PrivateKey["publicKey"], amount: bigint): `0x${string}` =>
-  toHex(encrypt(publicKey.toHex(), Buffer.from(amount.toString()))) as `0x${string}`;
+export const encryptAmount = (
+  publicKey: PrivateKey["publicKey"] | string,
+  amount: bigint
+): `0x${string}` => {
+  const hex =
+    typeof publicKey === "string"
+      ? publicKey.startsWith("0x")
+        ? publicKey.slice(2)
+        : publicKey
+      : publicKey.toHex().replace(/^0x/, "");
+  return toHex(encrypt(hex, Buffer.from(amount.toString()))) as `0x${string}`;
+};
 
 /**
  * Helper to decrypt a balance using the private key
