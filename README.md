@@ -5,30 +5,82 @@ Ce projet implémente un token ERC20 avec des fonctionnalités de confidentialit
 ## 🏗️ Architecture
 
 Le contrat `PrivateERC20` combine deux fonctionnalités principales :
+
 1. **Token ERC20 privé** avec balances chiffrées
 2. **Intégration TEE** pour le traitement off-chain sécurisé
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Chain: Sepolia / Base Sepolia (or other L2s)               │
+│                                                             │
+│  ┌─────────────────┐         ┌──────────────────┐           │
+│  │ PrivateERC20    │────────>│  PocoOApp        │           │
+│  │ Contract        │         │  (Router Mode)   │           │
+│  └─────────────────┘         └──────────────────┘           │
+│         ^                             │                     │
+│         │ 1. transfer()               │ 2. routeCall()      │
+│         │ with encrypted amount       │                     │
+└─────────┼─────────────────────────────┼──────────────────-──┘
+          │                             │
+          │                             │ LayerZero
+          │                             │ Cross-chain
+          │                             │ Message
+          │                             ▼
+┌─────────┼─────────────────────────────────────────────────┐
+│  Chain: Arbitrum Sepolia                                  │
+│         │                     ┌──────────────────┐        │
+│         │                     │  PocoOApp        │        │
+│         │                     │  (Receiver Mode) │        │
+│         │                     └─────────┬────────┘        │
+│         │                               │                 │
+│         │                               │ 3. _lzReceive() │
+│         │                               │    calls Poco   │
+|         |                               |                 |
+│         │                               │ 4. matchOrders()│
+│         │                               │    creates deal │
+│         │                               ▼                 │
+│         │                     ┌──────────────────┐        │
+│         │                     │ TEE Workerpool   │        │
+│         │                     │ Executes Transfer│        │
+│         │                     └─────────┬────────┘        │
+│         │                               │                 │
+│         │                               │ 5. Computes new │
+│         │                               │    balances     │
+│         └───────────────────────────────┘                 │
+│                                        6. updateBalance() │
+│                                           callback        │
+└───────────────────────────────────────────────────────────┘
+```
 
 ### Fonctionnalités clés
 
 #### 1. Mint de tokens
+
 ```solidity
 function mint(address to, bytes calldata encryptedAmount) external onlyOwner
 ```
+
 - Seul le propriétaire peut créer de nouveaux tokens
 - Le montant est fourni sous forme chiffrée
 
 #### 2. Transfert avec TEE
+
 ```solidity
 function transfer(address to, bytes calldata encryptedAmount) external
 ```
+
 - Crée une demande de transfert avec un ID d'opération unique
 - Émet des événements `TransferRequested` et `Transfer`
 - Le traitement réel se fait off-chain dans l'enclave TEE
 
 #### 3. Mise à jour des balances par TEE
+
 ```solidity
 function batchUpdateBalances(bytes32 operationId, address[] accounts, bytes[] newBalances) external onlyTEE
 ```
+
 - Met à jour les balances après vérification dans l'enclave TEE
 - Seul l'oracle TEE peut effectuer ces mises à jour
 
@@ -42,16 +94,19 @@ function batchUpdateBalances(bytes32 operationId, address[] accounts, bytes[] ne
 ## 🚀 Utilisation
 
 ### Compilation
+
 ```bash
 npx hardhat compile
 ```
 
 ### Tests
+
 ```bash
 forge test
 ```
 
 ### Déploiement
+
 ```bash
 npx hardhat run scripts/deploy.ts --network <network>
 ```
@@ -76,9 +131,10 @@ scripts/
 ## 🛠️ Pourquoi un seul contrat ?
 
 L'architecture a été simplifiée pour éviter la complexité inutile :
+
 - **Avant** : Deux contrats séparés (`PrivateERC20` + `TEEBalanceManager`)
 - **Maintenant** : Un seul contrat avec toute la logique intégrée
-- **Avantages** : 
+- **Avantages** :
   - Moins de gas pour les interactions
   - Code plus simple à maintenir
   - Pas de risques de synchronisation entre contrats
