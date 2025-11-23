@@ -6,7 +6,7 @@ import { IExec, utils } from 'iexec';
 // Configuration from environment variables
 const CONTRACT_ADDRESS_SEPOLIA = process.env.CONTRACT_ADDRESS_SEPOLIA as `0x${string}`;
 const RECIPIENT = process.env.RECIPIENT as `0x${string}`;
-const AMOUNT = process.env.AMOUNT || "100"; // Amount in tokens
+const AMOUNT = process.env.AMOUNT || "100000000000000000000"; // Amount in wei (default: 100 tokens with 18 decimals)
 const IEXEC_PAYMENT = process.env.IEXEC_PAYMENT || "0.01"; // ETH to send for iExec payment
 const APP_ADDRESS = process.env.APP_ADDRESS as `0x${string}` || "0xbb21e58a72327a5fda6f5d3673f1fab6607aeab1";
 const WORKERPOOL_ADDRESS = process.env.WORKERPOOL_ADDRESS as `0x${string}` || "0xb967057a21dc6a66a29721d96b8aa7454b7c383f";
@@ -33,7 +33,7 @@ async function main() {
   console.log("\n🌉 Initiating private transfer with iExec...");
   console.log(`   Token Contract (Sepolia): ${CONTRACT_ADDRESS_SEPOLIA}`);
   console.log(`   Recipient: ${RECIPIENT}`);
-  console.log(`   Amount: ${AMOUNT} tokens`);
+  console.log(`   Amount: ${AMOUNT} wei (${BigInt(AMOUNT) / 10n ** 18n} tokens)`);
   console.log(`   iExec Payment: ${IEXEC_PAYMENT} ETH`);
 
   // ========================================
@@ -116,17 +116,13 @@ async function main() {
   const publicKeyHex = publicKeyBytes as `0x${string}`;
   console.log(`   Public Key: ${publicKeyHex.substring(0, 20)}...`);
 
-  // Get decimals for proper conversion
-  const decimals = await tokenContract.read.decimals();
-  console.log(`   Token decimals: ${decimals}`);
-
-  // Convert amount to base units
-  const amountInBaseUnits = BigInt(AMOUNT) * 10n ** BigInt(decimals);
-  console.log(`   Amount in base units: ${amountInBaseUnits}`);
+  // Amount is already in wei (18 decimals)
+  const amountInWei = BigInt(AMOUNT);
+  console.log(`   Amount in wei: ${amountInWei}`);
 
   // Encrypt the amount
   console.log("\n🔒 Encrypting transfer amount...");
-  const encryptedAmount = encryptAmount(publicKeyHex, amountInBaseUnits);
+  const encryptedAmount = encryptAmount(publicKeyHex, amountInWei);
   console.log(`   Encrypted: ${encryptedAmount.substring(0, 20)}...`);
 
   // ========================================
@@ -202,6 +198,7 @@ async function main() {
   if (transferReceipt.status === "success") {
     console.log(`\n✅ Transfer requested successfully on Sepolia!`);
     console.log(`   Transaction: ${transferHash}`);
+    console.log(`   LayerZero Scan: https://testnet.layerzeroscan.com/tx/${transferHash}\n`);
     console.log(`\n   📋 The transfer will be processed by iExec TEE`);
     console.log(`   🔍 Monitor the TransferRequested event for the dealId`);
     console.log(`   ⏳ After computation completes, the balances will be updated`);
