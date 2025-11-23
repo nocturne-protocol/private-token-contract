@@ -4,11 +4,20 @@
   "type": "module",
   "scripts": {
     "build": "hardhat compile",
-    "deploy": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts",
     "deploy:arbitrumSepolia": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia",
+    "deploy:sepolia": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network sepolia --parameters '{\"PrivateERC20Module\":{\"pocoOAppRouter\":\"0x85455eFd48987C21C054F6583cc30c5839116394\",\"pocoAddress\":\"0x0000000000000000000000000000000000000000\",\"isArbitrum\":false,\"lzOptions\":\"0x00030100210100000000000000000000000000000000000000000000000000000000000aae60\"}}'",
+    "deploy:baseSepolia": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network baseSepolia --parameters '{\"PrivateERC20Module\":{\"pocoOAppRouter\":\"0x3E577D754bF662F1Ad0d20F62A0E99139C3C3B62\",\"pocoAddress\":\"0x0000000000000000000000000000000000000000\",\"isArbitrum\":false,\"lzOptions\":\"0x00030100210100000000000000000000000000000000000000000000000000000000000aae60\"}}'",
+    "store-orders:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network arbitrumSepolia",
+    "store-orders:sepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network sepolia",
+    "store-orders:baseSepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network baseSepolia",
+    "deposit-srlc:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/depositSRLC.ts --network arbitrumSepolia",
+    "transfer:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network arbitrumSepolia",
+    "transfer:sepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network sepolia",
+    "transfer:baseSepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network baseSepolia",
     "mint:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/mint.ts --network arbitrumSepolia",
     "verify:arbitrumSepolia": "dotenv -e .env -- hardhat ignition verify chain-421614 --network arbitrumSepolia",
     "test": "dotenv -e .env -- hardhat test --gas-stats",
+    "test:iexec": "dotenv -e .env -- hardhat test test/iexec-integration.ts --gas-stats",
     "test:solidity": "dotenv -e .env -- hardhat test solidity --gas-stats -vvv",
     "compile": "hardhat compile",
     "clean": "hardhat clean"
@@ -24,6 +33,7 @@
     "eciesjs": "^0.4.16",
     "forge-std": "github:foundry-rs/forge-std#v1.9.7",
     "hardhat": "^3.0.15",
+    "iexec": "^8.8.0",
     "typescript": "~5.8.0",
     "viem": "^2.39.3"
   }

@@ -1,0 +1,36 @@
+{
+  "chains": {
+    "sepolia": {
+      "name": "Sepolia",
+      "chainId": 11155111,
+      "isArbitrum": false,
+      "pocoOAppRouter": "0x85455eFd48987C21C054F6583cc30c5839116394",
+      "pocoAddress": "0x0000000000000000000000000000000000000000",
+      "lzOptions": "0x00030100210100000000000000000000000000000000000000000000000000000000000aae60",
+      "lzOptionsGas": 700000
+    },
+    "baseSepolia": {
+      "name": "Base Sepolia",
+      "chainId": 84532,
+      "isArbitrum": false,
+      "pocoOAppRouter": "0x3E577D754bF662F1Ad0d20F62A0E99139C3C3B62",
+      "pocoAddress": "0x0000000000000000000000000000000000000000",
+      "lzOptions": "0x00030100210100000000000000000000000000000000000000000000000000000000000aae60",
+      "lzOptionsGas": 700000
+    },
+    "arbitrumSepolia": {
+      "name": "Arbitrum Sepolia",
+      "chainId": 421614,
+      "isArbitrum": true,
+      "pocoOAppRouter": "0x4D9C0d72741D4E67aF5580761e41dAb565Aa449E",
+      "pocoAddress": "0xB2157BF2fAb286b2A4170E3491Ac39770111Da3E",
+      "lzOptions": "0x"
+    }
+  },
+  "tokenConfig": {
+    "name": "Private Token",
+    "symbol": "PRIV",
+    "decimals": 18
+  }
+}
+
