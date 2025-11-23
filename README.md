@@ -2,6 +2,10 @@
 
 This project implements an ERC20 token with privacy features using encrypted amounts and iExec TEE integration for off-chain processing.
 
+## 🚀 Deployed Contract
+
+**Arbitrum Sepolia**: [`0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7`](https://sepolia.arbiscan.io/address/0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7)
+
 ## 🏗️ Architecture
 
 The `PrivateERC20` contract combines two main features:
@@ -166,55 +170,6 @@ The script will automatically:
 **Step 5: The contract is ready!**
 
 Users can now call `transfer()` and the iExec TEE system will process computations confidentially.
-
-## 🔐 Security
-
-- **Confidentiality**: All amounts remain encrypted on-chain
-- **Integrity**: Verification in a trusted execution environment (TEE)
-- **Auditability**: All events are traceable
-
-## 📁 File Structure
-
-```
-contracts/
-├── PrivateERC20.sol         # Main contract
-└── PrivateERC20.t.sol       # Forge tests
-
-config/
-└── config.json              # Chain configuration
-
-ignition/modules/
-└── PrivateERC20.ts          # Ignition deployment module
-
-scripts/
-├── generateKeypair.ts       # Key pair generation
-├── storeOrders.ts           # iExec order retrieval and storage
-├── depositSRLC.ts           # sRLC deposit to contract
-├── transfer.ts              # Token transfer script
-└── mint.ts                  # Mint script
-```
-
-## 🛠️ Why a Single Contract?
-
-The architecture has been simplified to avoid unnecessary complexity:
-
-- **Before**: Two separate contracts (`PrivateERC20` + `TEEBalanceManager`)
-- **Now**: A single contract with all logic integrated
-- **Benefits**:
-  - Less gas for interactions
-  - Simpler code to maintain
-  - No synchronization risks between contracts
-
-```shell
-npx hardhat test
-```
-
-You can also selectively run the Solidity or `node:test` tests:
-
-```shell
-npx hardhat test solidity
-npx hardhat test nodejs
-```
 
 ### Make a deployment to Sepolia
 
