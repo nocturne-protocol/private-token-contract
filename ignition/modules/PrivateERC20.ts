@@ -1,6 +1,8 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import * as fs from "fs";
 import * as path from "path";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 interface ChainConfig {
   name: string;
@@ -28,8 +30,22 @@ const PrivateERC20Module = buildModule("PrivateERC20Module", (m) => {
   const configPath = path.join(process.cwd(), "config", "config.json");
   const config: Config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 
-  // Default to Arbitrum Sepolia config
-  const defaultConfig = config.chains.arbitrumSepolia;
+  // Get network from environment variable, default to arbitrumSepolia
+  const networkEnv = process.env.DEPLOY_NETWORK || "arbitrumSepolia";
+
+  // Map network names to config keys
+  const networkConfigMap: { [key: string]: string } = {
+    sepolia: "sepolia",
+    sepoliaFork: "sepolia",
+    baseSepolia: "baseSepolia",
+    baseSepoliaFork: "baseSepolia",
+    arbitrumSepolia: "arbitrumSepolia",
+    arbitrumSepoliaFork: "arbitrumSepolia",
+  };
+
+  const configKey = networkConfigMap[networkEnv] || "arbitrumSepolia";
+  const defaultConfig =
+    config.chains[configKey] || config.chains.arbitrumSepolia;
 
   // Get parameters from config with ability to override
   const tokenName = m.getParameter("name", config.tokenConfig.name);
@@ -37,8 +53,9 @@ const PrivateERC20Module = buildModule("PrivateERC20Module", (m) => {
   const decimals = m.getParameter("decimals", config.tokenConfig.decimals);
 
   console.log(`\n🌐 Deploying PrivateERC20 with Ignition...`);
+  console.log(`   Network (from env): ${networkEnv}`);
   console.log(
-    `   Default config: ${defaultConfig.name} (${defaultConfig.chainId})`
+    `   Chain config: ${defaultConfig.name} (${defaultConfig.chainId})`
   );
   console.log(
     `   Token: ${config.tokenConfig.name} (${config.tokenConfig.symbol})`
@@ -69,11 +86,13 @@ const PrivateERC20Module = buildModule("PrivateERC20Module", (m) => {
     "encryptionPublicKey",
     process.env.ENCRYPTION_PUBLIC_KEY || ""
   ) as unknown as string;
-  
+
   if (!encryptionPublicKey) {
-    throw new Error("ENCRYPTION_PUBLIC_KEY environment variable or parameter is required");
+    throw new Error(
+      "ENCRYPTION_PUBLIC_KEY environment variable or parameter is required"
+    );
   }
-  
+
   console.log(`   🔐 Using encryption public key`);
 
   // Deploy contract

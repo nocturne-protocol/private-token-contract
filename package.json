@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "build": "hardhat compile",
-    "deploy:arbitrumSepolia": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia",
-    "deploy:sepolia": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network sepolia --parameters '{\"PrivateERC20Module\":{\"pocoOAppRouter\":\"0x85455eFd48987C21C054F6583cc30c5839116394\",\"pocoAddress\":\"0x0000000000000000000000000000000000000000\",\"isArbitrum\":false,\"lzOptions\":\"0x00030100210100000000000000000000000000000000000000000000000000000000000aae60\"}}'",
-    "deploy:baseSepolia": "dotenv -e .env -- hardhat ignition deploy ignition/modules/PrivateERC20.ts --network baseSepolia --parameters '{\"PrivateERC20Module\":{\"pocoOAppRouter\":\"0x3E577D754bF662F1Ad0d20F62A0E99139C3C3B62\",\"pocoAddress\":\"0x0000000000000000000000000000000000000000\",\"isArbitrum\":false,\"lzOptions\":\"0x00030100210100000000000000000000000000000000000000000000000000000000000aae60\"}}'",
+    "deploy:arbitrumSepolia": "DEPLOY_NETWORK=arbitrumSepolia hardhat ignition deploy ignition/modules/PrivateERC20.ts --network arbitrumSepolia",
+    "deploy:sepolia": "DEPLOY_NETWORK=sepolia hardhat ignition deploy ignition/modules/PrivateERC20.ts --network sepolia",
+    "deploy:baseSepolia": "DEPLOY_NETWORK=baseSepolia hardhat ignition deploy ignition/modules/PrivateERC20.ts --network baseSepolia",
     "store-orders:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network arbitrumSepolia",
     "store-orders:sepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network sepolia",
     "store-orders:baseSepolia": "dotenv -e .env -- hardhat run scripts/storeOrders.ts --network baseSepolia",

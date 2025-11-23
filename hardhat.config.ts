@@ -1,6 +1,8 @@
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
-import { configVariable, defineConfig } from "hardhat/config";
+import { defineConfig } from "hardhat/config";
 import hardhatVerify from "@nomicfoundation/hardhat-verify";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 export default defineConfig({
   plugins: [hardhatToolboxViemPlugin, hardhatVerify],
@@ -15,7 +17,7 @@ export default defineConfig({
   },
   verify: {
     etherscan: {
-      apiKey: configVariable("ETHERSCAN_API_KEY"),
+      apiKey: process.env.ETHERSCAN_API_KEY || "",
     },
   },
   networks: {
@@ -28,7 +30,7 @@ export default defineConfig({
       type: "edr-simulated",
       chainType: "l1",
       forking: {
-        url: configVariable("SEPOLIA_RPC_URL"),
+        url: process.env.SEPOLIA_RPC_URL || "",
       },
     },
 
@@ -37,7 +39,7 @@ export default defineConfig({
       type: "edr-simulated",
       chainType: "op", // Base is OP Stack
       forking: {
-        url: configVariable("BASE_SEPOLIA_RPC_URL"),
+        url: process.env.BASE_SEPOLIA_RPC_URL || "",
         blockNumber: 18000000, // Use older block to avoid base fee params v1 issue
       },
     },
@@ -47,7 +49,7 @@ export default defineConfig({
       type: "edr-simulated",
       chainType: "generic", // Arbitrum uses Nitro, not OP Stack
       forking: {
-        url: configVariable("ARBITRUM_SEPOLIA_RPC_URL"),
+        url: process.env.ARBITRUM_SEPOLIA_RPC_URL || "",
       },
     },
 
@@ -60,8 +62,8 @@ export default defineConfig({
       type: "http",
       chainType: "l1",
       chainId: 11155111,
-      url: configVariable("SEPOLIA_RPC_URL"),
-      accounts: [configVariable("PRIVATE_KEY")],
+      url: process.env.SEPOLIA_RPC_URL || "",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
 
     // Base Sepolia (OP Stack L2)
@@ -69,8 +71,8 @@ export default defineConfig({
       type: "http",
       chainType: "op",
       chainId: 84532,
-      url: configVariable("BASE_SEPOLIA_RPC_URL"),
-      accounts: [configVariable("PRIVATE_KEY")],
+      url: process.env.BASE_SEPOLIA_RPC_URL || "",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
 
     // Arbitrum Sepolia
@@ -78,8 +80,8 @@ export default defineConfig({
       type: "http",
       chainType: "generic",
       chainId: 421614,
-      url: configVariable("ARBITRUM_SEPOLIA_RPC_URL"),
-      accounts: [configVariable("PRIVATE_KEY")],
+      url: process.env.ARBITRUM_SEPOLIA_RPC_URL || "",
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
     },
   },
 });

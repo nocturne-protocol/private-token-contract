@@ -2,9 +2,11 @@
 
 This project implements an ERC20 token with privacy features using encrypted amounts and iExec TEE integration for off-chain processing.
 
-## 🚀 Deployed Contract
+## 🚀 Deployed Contracts
 
-**Arbitrum Sepolia**: [`0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7`](https://sepolia.arbiscan.io/address/0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7)
+- **Arbitrum Sepolia**: [`0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7`](https://sepolia.arbiscan.io/address/0xFC2146736ee72A1c5057e2b914Ed27339F1fe9c7)
+- **Sepolia**: [`0x9485fC2dffEb7dE828e68BbFA73efB51584417e1`](https://sepolia.etherscan.io/address/0x9485fC2dffEb7dE828e68BbFA73efB51584417e1)
+- **Base Sepolia**: [`0x8D0100670E9E9cE2bD372F259fd16DC2Dc634091`](https://sepolia.basescan.org/address/0x8D0100670E9E9cE2bD372F259fd16DC2Dc634091)
 
 ## 🏗️ Architecture
 
