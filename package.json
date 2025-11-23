@@ -14,6 +14,7 @@
     "transfer:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network arbitrumSepolia",
     "transfer:sepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network sepolia",
     "transfer:baseSepolia": "dotenv -e .env -- hardhat run scripts/transfer.ts --network baseSepolia",
+    "cross-chain-transfer": "dotenv -e .env -- hardhat run scripts/crossChainTransfer.ts",
     "mint:arbitrumSepolia": "dotenv -e .env -- hardhat run scripts/mint.ts --network arbitrumSepolia",
     "verify:arbitrumSepolia": "dotenv -e .env -- hardhat ignition verify chain-421614 --network arbitrumSepolia",
     "test": "dotenv -e .env -- hardhat test --gas-stats",
