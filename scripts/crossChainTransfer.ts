@@ -4,8 +4,8 @@ import { encryptAmount } from "../test/utils.js";
 import { IExec, utils } from 'iexec';
 
 // Configuration from environment variables
-const CONTRACT_ADDRESS_SEPOLIA = process.env.CONTRACT_ADDRESS_SEPOLIA as `0x${string}`;
-const RECIPIENT = process.env.RECIPIENT as `0x${string}`;
+const CONTRACT_ADDRESS_SEPOLIA = "0x9485fC2dffEb7dE828e68BbFA73efB51584417e1";
+const RECIPIENT = "0xbabe8270ac9857af3aac06877888f1939fbec578";
 const AMOUNT = process.env.AMOUNT || "100000000000000000000"; // Amount in wei (default: 100 tokens with 18 decimals)
 const IEXEC_PAYMENT = process.env.IEXEC_PAYMENT || "0.01"; // ETH to send for iExec payment
 const APP_ADDRESS = process.env.APP_ADDRESS as `0x${string}` || "0xbb21e58a72327a5fda6f5d3673f1fab6607aeab1";
