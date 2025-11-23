@@ -1,13 +1,13 @@
 # Private ERC20 Token with iExec TEE Integration
 
-Ce projet implémente un token ERC20 avec des fonctionnalités de confidentialité utilisant des montants chiffrés et une intégration avec iExec TEE pour le traitement off-chain.
+This project implements an ERC20 token with privacy features using encrypted amounts and iExec TEE integration for off-chain processing.
 
 ## 🏗️ Architecture
 
-Le contrat `PrivateERC20` combine deux fonctionnalités principales :
+The `PrivateERC20` contract combines two main features:
 
-1. **Token ERC20 privé** avec balances chiffrées
-2. **Intégration TEE** pour le traitement off-chain sécurisé
+1. **Private ERC20 Token** with encrypted balances
+2. **TEE Integration** for secure off-chain processing
 
 ## Architecture Overview
 
@@ -54,44 +54,44 @@ Le contrat `PrivateERC20` combine deux fonctionnalités principales :
 └───────────────────────────────────────────────────────────┘
 ```
 
-### Fonctionnalités clés
+### Key Features
 
-#### 1. Mint de tokens
+#### 1. Token Minting
 
 ```solidity
 function mint(address to, bytes calldata encryptedAmount) external onlyOwner
 ```
 
-- Seul le propriétaire peut créer de nouveaux tokens
-- Le montant est fourni sous forme chiffrée
+- Only the owner can create new tokens
+- The amount is provided in encrypted form
 
-#### 2. Transfert avec TEE
+#### 2. Transfer with TEE
 
 ```solidity
 function transfer(address to, bytes calldata encryptedAmount) external
 ```
 
-- Crée une demande de transfert avec un ID d'opération unique
-- Émet des événements `TransferRequested` et `Transfer`
-- Le traitement réel se fait off-chain dans l'enclave TEE
+- Creates a transfer request with a unique operation ID
+- Emits `TransferRequested` and `Transfer` events
+- The actual processing happens off-chain in the TEE enclave
 
-#### 3. Mise à jour des balances par TEE
+#### 3. Balance Updates by TEE
 
 ```solidity
 function batchUpdateBalances(bytes32 operationId, address[] accounts, bytes[] newBalances) external onlyTEE
 ```
 
-- Met à jour les balances après vérification dans l'enclave TEE
-- Seul l'oracle TEE peut effectuer ces mises à jour
+- Updates balances after verification in the TEE enclave
+- Only the TEE oracle can perform these updates
 
-## 🔄 Flux de travail
+## 🔄 Workflow
 
-1. **Demande de transfert** → L'utilisateur appelle `transfer()`
-2. **Événement émis** → `TransferRequested` avec un ID d'opération unique
-3. **Traitement TEE** → L'enclave iExec déchiffre, vérifie et calcule
-4. **Mise à jour** → TEE appelle `batchUpdateBalances()` avec les nouvelles balances chiffrées
+1. **Transfer Request** → User calls `transfer()`
+2. **Event Emitted** → `TransferRequested` with a unique operation ID
+3. **TEE Processing** → iExec enclave decrypts, verifies, and calculates
+4. **Update** → TEE calls `batchUpdateBalances()` with new encrypted balances
 
-## 🚀 Utilisation
+## 🚀 Usage
 
 ### Compilation
 
@@ -105,102 +105,105 @@ npx hardhat compile
 forge test
 ```
 
-### Déploiement
+### Deployment
 
-**Étape 1: Déployer le contrat**
+**Step 1: Deploy the contract**
 
 ```bash
-# Arbitrum Sepolia (recommandé)
+# Arbitrum Sepolia (recommended)
 npm run deploy:arbitrumSepolia
 ```
 
-**Étape 2: Configurer les orders iExec**
+**Step 2: Configure iExec orders**
 
 ```bash
-# Éditer scripts/storeOrders.ts pour définir CONTRACT_ADDRESS
-# Stocker les orders depuis iExec orderbook
+# Edit scripts/storeOrders.ts to set CONTRACT_ADDRESS
+# Store orders from iExec orderbook
 npm run store-orders:arbitrumSepolia
 ```
 
-Le script va automatiquement:
-- ✅ Récupérer les AppOrder et WorkerpoolOrder depuis iExec
-- ✅ Les stocker dans le contrat
-- ✅ Vérifier que tout est configuré correctement
+The script will automatically:
 
-**Étape 3: Déposer des sRLC pour le contrat**
+- ✅ Retrieve AppOrder and WorkerpoolOrder from iExec
+- ✅ Store them in the contract
+- ✅ Verify that everything is configured correctly
+
+**Step 3: Deposit sRLC for the contract**
 
 ```bash
-# Le script lit automatiquement l'adresse du contrat déployé
-# Éditer scripts/depositSRLC.ts pour ajuster AMOUNT si nécessaire (par défaut: 1.0 RLC)
+# The script automatically reads the deployed contract address
+# Edit scripts/depositSRLC.ts to adjust AMOUNT if needed (default: 1.0 RLC)
 npm run deposit-srlc:arbitrumSepolia
 ```
 
-Le script va automatiquement:
-- ✅ Détecter l'adresse du contrat déployé depuis Hardhat Ignition
-- ✅ Lire la configuration Poco depuis config.json
-- ✅ Vérifier votre balance RLC
-- ✅ Approuver le contrat Poco
-- ✅ Déposer des RLC en tant que sRLC pour le contrat
-- ✅ Le contrat pourra maintenant payer pour les calculs iExec
+The script will automatically:
 
-**Étape 4: Effectuer un transfert**
+- ✅ Detect the deployed contract address from Hardhat Ignition
+- ✅ Read Poco configuration from config.json
+- ✅ Check your RLC balance
+- ✅ Approve the Poco contract
+- ✅ Deposit RLC as sRLC for the contract
+- ✅ The contract can now pay for iExec computations
+
+**Step 4: Perform a transfer**
 
 ```bash
-# Éditer scripts/transfer.ts pour définir:
-# - CONTRACT_ADDRESS: adresse du contrat déployé
-# - RECIPIENT: adresse du destinataire
-# - AMOUNT: montant à transférer (en tokens)
+# Edit scripts/transfer.ts to set:
+# - CONTRACT_ADDRESS: deployed contract address
+# - RECIPIENT: recipient address
+# - AMOUNT: amount to transfer (in tokens)
 
 npm run transfer:arbitrumSepolia
 ```
 
-Le script va automatiquement:
-- ✅ Récupérer la clé publique de chiffrement du contrat
-- ✅ Chiffrer le montant du transfert
-- ✅ Appeler la fonction transfer() avec paiement iExec
-- ✅ Le TEE traitera le transfert de manière confidentielle
+The script will automatically:
 
-**Étape 5: Le contrat est prêt!**
+- ✅ Retrieve the contract's encryption public key
+- ✅ Encrypt the transfer amount
+- ✅ Call the transfer() function with iExec payment
+- ✅ The TEE will process the transfer confidentially
 
-Les utilisateurs peuvent maintenant appeler `transfer()` et le système iExec TEE traitera les calculs de manière confidentielle.
+**Step 5: The contract is ready!**
 
-## 🔐 Sécurité
+Users can now call `transfer()` and the iExec TEE system will process computations confidentially.
 
-- **Confidentialité** : Tous les montants restent chiffrés on-chain
-- **Intégrité** : Vérification dans un environnement d'exécution de confiance (TEE)
-- **Auditabilité** : Tous les événements sont traçables
+## 🔐 Security
 
-## 📁 Structure des fichiers
+- **Confidentiality**: All amounts remain encrypted on-chain
+- **Integrity**: Verification in a trusted execution environment (TEE)
+- **Auditability**: All events are traceable
+
+## 📁 File Structure
 
 ```
 contracts/
-├── PrivateERC20.sol         # Contrat principal
-└── PrivateERC20.t.sol       # Tests Forge
+├── PrivateERC20.sol         # Main contract
+└── PrivateERC20.t.sol       # Forge tests
 
 config/
-└── config.json              # Configuration des chaînes
+└── config.json              # Chain configuration
 
 ignition/modules/
-└── PrivateERC20.ts          # Module de déploiement Ignition
+└── PrivateERC20.ts          # Ignition deployment module
 
 scripts/
-├── generateKeypair.ts       # Génération de paires de clés
-├── storeOrders.ts           # Récupération et stockage des orders iExec
-├── depositSRLC.ts           # Dépôt de sRLC dans le contrat
-├── transfer.ts              # Script de transfert de tokens
-└── mint.ts                  # Script de mint
+├── generateKeypair.ts       # Key pair generation
+├── storeOrders.ts           # iExec order retrieval and storage
+├── depositSRLC.ts           # sRLC deposit to contract
+├── transfer.ts              # Token transfer script
+└── mint.ts                  # Mint script
 ```
 
-## 🛠️ Pourquoi un seul contrat ?
+## 🛠️ Why a Single Contract?
 
-L'architecture a été simplifiée pour éviter la complexité inutile :
+The architecture has been simplified to avoid unnecessary complexity:
 
-- **Avant** : Deux contrats séparés (`PrivateERC20` + `TEEBalanceManager`)
-- **Maintenant** : Un seul contrat avec toute la logique intégrée
-- **Avantages** :
-  - Moins de gas pour les interactions
-  - Code plus simple à maintenir
-  - Pas de risques de synchronisation entre contrats
+- **Before**: Two separate contracts (`PrivateERC20` + `TEEBalanceManager`)
+- **Now**: A single contract with all logic integrated
+- **Benefits**:
+  - Less gas for interactions
+  - Simpler code to maintain
+  - No synchronization risks between contracts
 
 ```shell
 npx hardhat test
